@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advertizement4all — Create Custom Ads Fast</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Advertizement4all helps you create custom advertisements using your photo (upload or camera) plus templates, prompts, and instant ad copy." />
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="Advertizement4all Home">
+        <span class="brand-mark">A4A</span>
+        <span class="brand-name">Advertizement4all</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#create">Create</a>
+        <a href="#templates">Templates</a>
+        <a href="#preview">Preview</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact" class="btn btn-ghost">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Photo-based ads • Templates • Instant copy</p>
+          <h1>Create professional ads in minutes — using your own photo.</h1>
+          <p class="subhead">
+            <strong>Advertizement4all</strong> lets you upload a picture or take one with your camera,
+            choose an ad template, and generate clean ad text with a matching visual preview.
+            Great for social posts, flyers, listings, promos, and launches.
+          </p>
+
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#create">Start creating</a>
+            <a class="btn btn-secondary" href="#templates">Browse templates</a>
+          </div>
+
+          <div class="trust-row" role="list" aria-label="Highlights">
+            <div class="pill" role="listitem">Upload or Camera</div>
+            <div class="pill" role="listitem">Ad Copy Generator</div>
+            <div class="pill" role="listitem">Live Preview</div>
+            <div class="pill" role="listitem">Download PNG</div>
+          </div>
+
+          <p class="creator">Created by <strong>Parth Pankaj Bakhda</strong></p>
+        </div>
+
+        <div class="hero-card" aria-label="Ad preview mock card">
+          <div class="card-top">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <span class="card-title">Advertizement4all — Ad Builder</span>
+          </div>
+
+          <div class="display">
+            <div class="display-row">
+              <div class="stat">
+                <p class="label">Platform</p>
+                <p class="value">Instagram</p>
+              </div>
+              <div class="stat">
+                <p class="label">Tone</p>
+                <p class="value">Bold</p>
+              </div>
+              <div class="stat">
+                <p class="label">Template</p>
+                <p class="value">Product</p>
+              </div>
+            </div>
+
+            <div class="reward">
+              <p class="label">Output</p>
+              <p class="value">Headline + Offer + CTA + Hashtags</p>
+              <p class="hint">Upload a photo, fill details, click Generate</p>
+            </div>
+
+            <button class="mock-btn" type="button" onclick="document.getElementById('create').scrollIntoView({behavior:'smooth'})">
+              Create your ad
+            </button>
+          </div>
+
+          <p class="note">This is a front-end demo concept website (no backend required).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Create -->
+    <section id="create" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Create your custom advertisement</h2>
+          <p>Take a photo or upload one, then generate ad text and a visual preview.</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- Left: Image input -->
+          <div class="panel">
+            <h3>1) Add your photo</h3>
+            <p class="muted">Use upload (works everywhere) or camera capture (works best on mobile).</p>
+
+            <div class="uploader">
+              <div class="uploader-actions">
+                <label class="btn btn-secondary" for="fileInput">Upload image</label>
+                <input id="fileInput" type="file" accept="image/*" hidden />
+                <button class="btn btn-ghost" type="button" id="cameraBtn">Use camera</button>
+                <button class="btn btn-ghost" type="button" id="captureBtn" disabled>Capture</button>
+              </div>
+
+              <div class="uploader-grid">
+                <div class="media-box">
+                  <video id="video" playsinline muted></video>
+                  <canvas id="captureCanvas" width="1200" height="1200" hidden></canvas>
+                  <div class="media-overlay">
+                    <span class="badge">Camera preview</span>
+                  </div>
+                </div>
+
+                <div class="media-box">
+                  <img id="photoPreview" alt="Uploaded or captured preview" />
+                  <div class="media-overlay">
+                    <span class="badge">Selected photo</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="muted small">
+                Tip: If camera doesn’t start on desktop, open this page on your phone or use HTTPS hosting.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Form -->
+          <div class="panel">
+            <h3>2) Choose template & fill details</h3>
+
+            <form class="form" onsubmit="return false;">
+              <div class="form-row">
+                <label>
+                  Template
+                  <select id="template">
+                    <option value="product">Product</option>
+                    <option value="service">Service</option>
+                    <option value="realestate">Real Estate</option>
+                    <option value="hiring">Hiring / Job</option>
+                    <option value="event">Event</option>
+                    <option value="restaurant">Restaurant / Food</option>
+                    <option value="ecommerce">E-commerce Deal</option>
+                    <option value="applaunch">App Launch</option>
+                  </select>
+                </label>
+
+                <label>
+                  Platform
+                  <select id="platform">
+                    <option>Instagram</option>
+                    <option>TikTok</option>
+                    <option>Facebook</option>
+                    <option>LinkedIn</option>
+                    <option>Google Ads</option>
+                    <option>Flyer / Poster</option>
+                    <option>Website Banner</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label>
+                  Tone
+                  <select id="tone">
+                    <option value="bold">Bold</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="luxury">Luxury</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="professional">Professional</option>
+                  </select>
+                </label>
+
+                <label>
+                  CTA (Call to Action)
+                  <select id="cta">
+                    <option>Shop Now</option>
+                    <option>Book Now</option>
+                    <option>Order Today</option>
+                    <option>Learn More</option>
+                    <option>Get a Quote</option>
+                    <option>Apply Now</option>
+                    <option>RSVP</option>
+                    <option>Download</option>
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                Brand / Business name
+                <input id="brand" type="text" placeholder="Example: Desert Glow Detailing" />
+              </label>
+
+              <label>
+                What are you advertising?
+                <input id="item" type="text" placeholder="Example: Mobile car detailing (interior + exterior)" />
+              </label>
+
+              <div class="form-row">
+                <label>
+                  Main offer (optional)
+                  <input id="offer" type="text" placeholder="Example: 20% off this week / $49 starter package" />
+                </label>
+
+                <label>
+                  Location (optional)
+                  <input id="location" type="text" placeholder="Example: Phoenix, AZ" />
+                </label>
+              </div>
+
+              <label>
+                Extra details (optional)
+                <textarea id="details" rows="4" placeholder="Example: Same-day availability, eco-friendly products, free estimate, limited slots..."></textarea>
+              </label>
+
+              <div class="uploader-actions">
+                <button class="btn btn-primary" type="button" id="generateBtn">Generate advertisement</button>
+                <button class="btn btn-secondary" type="button" id="fillExampleBtn">Fill example</button>
+                <button class="btn btn-ghost" type="button" id="resetBtn">Reset</button>
+              </div>
+
+              <p class="muted small">
+                This demo generates copy locally using templates (no AI server). Want real AI generation later?
+                You’d connect this form to an API.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Templates -->
+    <section id="templates" class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>Template library</h2>
+          <p>Pick a style that matches your goal. The generator adapts tone + platform.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="feature">
+            <h3>Product</h3>
+            <p>Perfect for physical items, launches, and new drops.</p>
+          </article>
+          <article class="feature">
+            <h3>Service</h3>
+            <p>Great for local services: detailing, plumbing, tutoring, etc.</p>
+          </article>
+          <article class="feature">
+            <h3>Real Estate</h3>
+            <p>Listings, rentals, open houses, and new properties.</p>
+          </article>
+          <article class="feature">
+            <h3>Hiring</h3>
+            <p>Job posts with clear benefits + quick apply CTA.</p>
+          </article>
+          <article class="feature">
+            <h3>Event</h3>
+            <p>Birthdays, grand openings, meetups, and shows.</p>
+          </article>
+          <article class="feature">
+            <h3>Restaurant</h3>
+            <p>Menu highlights, specials, and daily deals.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Preview -->
+    <section id="preview" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Ad preview + copy</h2>
+          <p>Copy your text or download the preview image.</p>
+        </div>
+
+        <div class="grid-2">
+          <!-- Visual preview -->
+          <div class="panel">
+            <div class="preview-head">
+              <h3>Visual preview</h3>
+              <div class="uploader-actions">
+                <button class="btn btn-secondary" type="button" id="downloadBtn">Download PNG</button>
+              </div>
+            </div>
+
+            <div class="ad-canvas-wrap">
+              <div id="adCanvas" class="ad-canvas" aria-label="Ad visual preview">
+                <div class="ad-image">
+                  <img id="adImg" alt="Ad image preview" />
+                </div>
+                <div class="ad-text">
+                  <p class="ad-kicker" id="adKicker">NEW • LIMITED</p>
+                  <h4 class="ad-headline" id="adHeadline">Your headline will appear here</h4>
+                  <p class="ad-body" id="adBody">Your ad description will appear here. Upload a photo and click Generate.</p>
+                  <div class="ad-footer">
+                    <span class="ad-chip" id="adChip">Instagram • Bold</span>
+                    <span class="ad-cta" id="adCTA">Shop Now</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p class="muted small">Download uses an embedded script (client-side only).</p>
+          </div>
+
+          <!-- Copy output -->
+          <div class="panel">
+            <div class="preview-head">
+              <h3>Generated copy</h3>
+              <div class="uploader-actions">
+                <button class="btn btn-ghost" type="button" id="copyBtn">Copy text</button>
+              </div>
+            </div>
+
+            <div class="copybox">
+              <p class="label">Headline</p>
+              <p class="copy" id="outHeadline">—</p>
+
+              <p class="label">Primary text</p>
+              <p class="copy" id="outPrimary">—</p>
+
+              <p class="label">Short caption</p>
+              <p class="copy" id="outCaption">—</p>
+
+              <p class="label">Hashtags</p>
+              <p class="copy" id="outTags">—</p>
+            </div>
+
+            <div class="callout">
+              <p><strong>Tip:</strong> Swap the tone (Bold, Luxury, Urgent, etc.) and hit Generate again to get different styles.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>FAQ</h2>
+          <p>Quick answers for beginners.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Does this use real AI?</h3>
+            <p class="muted">
+              Not yet — this is a front-end demo using smart templates locally.
+              To make it real AI, you’d connect the form to an AI API later.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>Why is camera not working?</h3>
+            <p class="muted">
+              Some browsers require HTTPS or mobile permissions. Upload works everywhere.
+              Camera works best on phone browsers.
+            </p>
+          </div>
+        </div>
+
+        <p class="muted small">
+          Advertizement4all is a concept/demo site and does not collect uploads unless you connect a backend.
+        </p>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Contact</h2>
+          <p>Add your email/phone/social here when you’re ready to launch.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Partnerships / inquiries</h3>
+            <form class="form" onsubmit="return false;">
+              <label>
+                Name
+                <input type="text" placeholder="Your name" />
+              </label>
+              <label>
+                Email
+                <input type="email" placeholder="you@email.com" />
+              </label>
+              <label>
+                Message
+                <textarea rows="5" placeholder="Tell us what you want to build..."></textarea>
+              </label>
+              <button class="btn btn-primary" type="submit">Send message (demo)</button>
+              <p class="muted small">Demo only — connect to a form service to receive messages.</p>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h3>Creator</h3>
+            <p class="muted">
+              <strong>Advertizement4all</strong> helps people turn a simple photo into a polished advertisement
+              with structured templates, prompts, and downloadable previews.
+            </p>
+
+            <div class="callout">
+              <p><strong>Created by:</strong> Parth Pankaj Bakhda</p>
+              <p class="muted small">Replace this with your email, IG, or business address later.</p>
+            </div>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <div class="footer-inner">
+            <p>© <span id="year"></span> Advertizement4all. Created by <strong>Parth Pankaj Bakhda</strong>.</p>
+            <p class="muted small">Concept website • Front-end demo.</p>
+          </div>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <!-- html2canvas (small client-side lib via CDN) for Download PNG -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script>
+    // ====== Helpers ======
+    const byId = (id) => document.getElementById(id);
+
+    const fileInput = byId("fileInput");
+    const photoPreview = byId("photoPreview");
+    const adImg = byId("adImg");
+
+    const video = byId("video");
+    const cameraBtn = byId("cameraBtn");
+    const captureBtn = byId("captureBtn");
+    const canvas = byId("captureCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const templateEl = byId("template");
+    const platformEl = byId("platform");
+    const toneEl = byId("tone");
+    const ctaEl = byId("cta");
+
+    const brandEl = byId("brand");
+    const itemEl = byId("item");
+    const offerEl = byId("offer");
+    const locationEl = byId("location");
+    const detailsEl = byId("details");
+
+    const generateBtn = byId("generateBtn");
+    const fillExampleBtn = byId("fillExampleBtn");
+    const resetBtn = byId("resetBtn");
+
+    const adKicker = byId("adKicker");
+    const adHeadline = byId("adHeadline");
+    const adBody = byId("adBody");
+    const adChip = byId("adChip");
+    const adCTA = byId("adCTA");
+
+    const outHeadline = byId("outHeadline");
+    const outPrimary = byId("outPrimary");
+    const outCaption = byId("outCaption");
+    const outTags = byId("outTags");
+
+    const copyBtn = byId("copyBtn");
+    const downloadBtn = byId("downloadBtn");
+    const adCanvas = byId("adCanvas");
+
+    let stream = null;
+    let hasPhoto = false;
+
+    function safeText(v, fallback="") {
+      const t = (v || "").trim();
+      return t.length ? t : fallback;
+    }
+
+    function tonePack(tone){
+      const packs = {
+        bold: {
+          kicker: "NEW • MUST SEE",
+          verbs: ["Boost", "Upgrade", "Unlock", "Level up", "Transform"],
+          energy: "Big results. Simple steps.",
+        },
+        friendly: {
+          kicker: "HELLO • FRIENDLY DEAL",
+          verbs: ["Try", "Enjoy", "Discover", "Love", "Share"],
+          energy: "Easy, helpful, and made for you.",
+        },
+        luxury: {
+          kicker: "PREMIUM • ELEVATED",
+          verbs: ["Elevate", "Indulge", "Experience", "Refine", "Upgrade"],
+          energy: "Crafted quality with a premium feel.",
+        },
+        urgent: {
+          kicker: "LIMITED • ACT FAST",
+          verbs: ["Grab", "Claim", "Don’t miss", "Hurry", "Secure"],
+          energy: "Limited availability — don’t wait.",
+        },
+        minimal: {
+          kicker: "CLEAN • SIMPLE",
+          verbs: ["Get", "Try", "Use", "Enjoy", "Go"],
+          energy: "Straight to the point. No fluff.",
+        },
+        professional: {
+          kicker: "TRUSTED • RELIABLE",
+          verbs: ["Improve", "Optimize", "Support", "Deliver", "Provide"],
+          energy: "Clear value, credible results.",
+        }
+      };
+      return packs[tone] || packs.professional;
+    }
+
+    function templateCopy(template, data, tone){
+      const t = tonePack(tone);
+      const verb = t.verbs[Math.floor(Math.random() * t.verbs.length)];
+
+      const brand = safeText(data.brand, "Your Brand");
+      const item = safeText(data.item, "your offer");
+      const offer = safeText(data.offer, "");
+      const loc = safeText(data.location, "");
+      const details = safeText(data.details, "");
+
+      const where = loc ? ` • ${loc}` : "";
+      const offerLine = offer ? `\n✅ Offer: ${offer}` : "";
+      const detailsLine = details ? `\n⭐ ${details}` : "";
+
+      const baseHeadline = `${verb} with ${brand}`;
+      const productHeadline = `${brand}: ${item}`;
+      const eventHeadline = `${brand} Event: ${item}`;
+      const hiringHeadline = `${brand} is hiring — ${item}`;
+      const realHeadline = `${item} — ${brand}`;
+
+      let headline = baseHeadline;
+      let primary = `${item}${where}\n${t.energy}${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+
+      let caption = `${brand} • ${item}${where} — ${offer ? offer + ". " : ""}${data.cta}`;
+      let tags = "";
+
+      const tagSets = {
+        product: ["#newdrop","#musthave","#shopnow","#limited","#trend"],
+        service: ["#localbusiness","#service","#booknow","#trusted","#quality"],
+        realestate: ["#realestate","#home","#openhouse","#forsale","#rent"],
+        hiring: ["#hiring","#jobs","#applynow","#career","#nowhiring"],
+        event: ["#event","#thingstodo","#rsvp","#weekend","#community"],
+        restaurant: ["#food","#restaurant","#special","#ordernow","#delicious"],
+        ecommerce: ["#deal","#discount","#onlineshopping","#sale","#offer"],
+        applaunch: ["#applaunch","#newapp","#download","#tech","#startup"],
+      };
+
+      switch(template){
+        case "product":
+          headline = productHeadline;
+          primary = `${t.kicker}\n${brand} presents: ${item}${where}${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `${brand} just dropped: ${item}. ${offer ? offer + " " : ""}${data.cta} 🔥`;
+          tags = [...tagSets.product, "#advertising", "#brand"].join(" ");
+          break;
+        case "service":
+          headline = `${brand} • ${item}`;
+          primary = `${t.kicker}\nNeed ${item}? ${brand} delivers${where}.${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `Reliable ${item}${where}. ${offer ? offer + " " : ""}${data.cta} ✅`;
+          tags = [...tagSets.service, "#support", "#nearby"].join(" ");
+          break;
+        case "realestate":
+          headline = realHeadline;
+          primary = `${t.kicker}\n${item}${where}\nListed by ${brand}.${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `${item}${where}. ${offer ? offer + " " : ""}${data.cta} 🏡`;
+          tags = [...tagSets.realestate, "#property", "#homes"].join(" ");
+          break;
+        case "hiring":
+          headline = hiringHeadline;
+          primary = `${t.kicker}\nJoin ${brand} as: ${item}${where}${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `${brand} is hiring: ${item}${where}. ${data.cta} 💼`;
+          tags = [...tagSets.hiring, "#recruiting", "#opportunity"].join(" ");
+          break;
+        case "event":
+          headline = eventHeadline;
+          primary = `${t.kicker}\n${item}${where}\nHosted by ${brand}.${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `${item}${where}. ${offer ? offer + " " : ""}${data.cta} 🎉`;
+          tags = [...tagSets.event, "#live", "#tickets"].join(" ");
+          break;
+        case "restaurant":
+          headline = `${brand} • ${item}`;
+          primary = `${t.kicker}\nToday at ${brand}${where}: ${item}${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `${brand}${where}: ${item}. ${offer ? offer + " " : ""}${data.cta} 🍔`;
+          tags = [...tagSets.restaurant, "#foodies", "#yum"].join(" ");
+          break;
+        case "ecommerce":
+          headline = `${brand} Deal • ${item}`;
+          primary = `${t.kicker}\nSave on ${item} from ${brand}.${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `Deal alert: ${item}. ${offer ? offer + " " : ""}${data.cta} 🛒`;
+          tags = [...tagSets.ecommerce, "#shopping", "#steal"].join(" ");
+          break;
+        case "applaunch":
+          headline = `${brand} App • ${item}`;
+          primary = `${t.kicker}\nMeet ${brand}: ${item}.${offerLine}${detailsLine}\n\n👉 ${data.cta}`;
+          caption = `New launch: ${brand} — ${item}. ${data.cta} 📲`;
+          tags = [...tagSets.applaunch, "#producthunt", "#buildinpublic"].join(" ");
+          break;
+        default:
+          tags = "#advertising #marketing #branding #business";
+      }
+
+      return { headline, primary, caption, tags, kicker: t.kicker };
+    }
+
+    // ====== Image Upload ======
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      photoPreview.src = url;
+      adImg.src = url;
+      hasPhoto = true;
+    });
+
+    // ====== Camera ======
+    cameraBtn.addEventListener("click", async () => {
+      try {
+        if (stream) {
+          // stop existing
+          stream.getTracks().forEach(t => t.stop());
+          stream = null;
+        }
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+        video.srcObject = stream;
+        await video.play();
+        captureBtn.disabled = false;
+      } catch (err) {
+        alert("Camera could not start. Try uploading an image instead, or open on your phone browser.");
+        captureBtn.disabled = true;
+      }
+    });
+
+    captureBtn.addEventListener("click", () => {
+      if (!stream) return;
+
+      // draw square crop (center) for nicer preview
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      const size = Math.min(vw, vh);
+      const sx = (vw - size) / 2;
+      const sy = (vh - size) / 2;
+
+      canvas.width = 1200;
+      canvas.height = 1200;
+      ctx.drawImage(video, sx, sy, size, size, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL("image/png");
+      photoPreview.src = dataUrl;
+      adImg.src = dataUrl;
+      hasPhoto = true;
+    });
+
+    // ====== Generate ======
+    generateBtn.addEventListener("click", () => {
+      const data = {
+        template: templateEl.value,
+        platform: platformEl.value,
+        tone: toneEl.value,
+        cta: ctaEl.value,
+        brand: brandEl.value,
+        item: itemEl.value,
+        offer: offerEl.value,
+        location: locationEl.value,
+        details: detailsEl.value,
+      };
+
+      if (!safeText(data.item) || !safeText(data.brand)) {
+        alert("Please fill at least: Brand/Business name AND What are you advertising?");
+        return;
+      }
+
+      const result = templateCopy(data.template, data, data.tone);
+
+      // Visual
+      adKicker.textContent = result.kicker;
+      adHeadline.textContent = result.headline;
+      adBody.textContent = result.primary.replace(/\n/g, " ");
+      adChip.textContent = `${data.platform} • ${data.tone.charAt(0).toUpperCase() + data.tone.slice(1)} • ${data.template}`;
+      adCTA.textContent = data.cta;
+
+      // Output
+      outHeadline.textContent = result.headline;
+      outPrimary.textContent = result.primary;
+      outCaption.textContent = result.caption;
+      outTags.textContent = result.tags;
+
+      // If no photo, keep placeholder message but still allow text
+      if (!hasPhoto) {
+        adImg.removeAttribute("src");
+        adImg.alt = "No image selected";
+      }
+
+      // Jump to preview
+      document.getElementById("preview").scrollIntoView({ behavior: "smooth" });
+    });
+
+    // ====== Fill Example ======
+    fillExampleBtn.addEventListener("click", () => {
+      templateEl.value = "service";
+      platformEl.value = "Instagram";
+      toneEl.value = "bold";
+      ctaEl.value = "Book Now";
+      brandEl.value = "Desert Glow Detailing";
+      itemEl.value = "Mobile car detailing (interior + exterior)";
+      offerEl.value = "20% off this week • Same-day slots";
+      locationEl.value = "Phoenix, AZ";
+      detailsEl.value = "Fast appointment, premium finish, free quote by text.";
+    });
+
+    // ====== Reset ======
+    resetBtn.addEventListener("click", () => {
+      brandEl.value = "";
+      itemEl.value = "";
+      offerEl.value = "";
+      locationEl.value = "";
+      detailsEl.value = "";
+      outHeadline.textContent = "—";
+      outPrimary.textContent = "—";
+      outCaption.textContent = "—";
+      outTags.textContent = "—";
+      adKicker.textContent = "NEW • LIMITED";
+      adHeadline.textContent = "Your headline will appear here";
+      adBody.textContent = "Your ad description will appear here. Upload a photo and click Generate.";
+      adChip.textContent = "Instagram • Bold";
+      adCTA.textContent = "Shop Now";
+      hasPhoto = false;
+      photoPreview.removeAttribute("src");
+      adImg.removeAttribute("src");
+      fileInput.value = "";
+    });
+
+    // ====== Copy ======
+    copyBtn.addEventListener("click", async () => {
+      const text =
+`Headline:
+${outHeadline.textContent}
+
+Primary text:
+${outPrimary.textContent}
+
+Short caption:
+${outCaption.textContent}
+
+Hashtags:
+${outTags.textContent}
+`;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => copyBtn.textContent = "Copy text", 900);
+      } catch {
+        alert("Copy failed. You can manually select and copy the text.");
+      }
+    });
+
+    // ====== Download PNG ======
+    downloadBtn.addEventListener("click", async () => {
+      try {
+        const canvas = await html2canvas(adCanvas, { scale: 2, backgroundColor: null });
+        const link = document.createElement("a");
+        link.download = "advertizement4all-ad.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        alert("Download failed. Try again or use a different browser.");
+      }
+    });
+
+    // Year
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
