@@ -31,8 +31,8 @@
         <div class="hero-left">
           <h2>Turn any photo into an advertisement.</h2>
           <p class="subtext">
-            Use your camera or upload an image, pick a template + prompt style, generate copy,
-            preview instantly, and export as a shareable PNG.
+            Use camera or upload an image, choose a template + prompt style, generate copy, preview instantly,
+            export as PNG, and share to phone.
           </p>
 
           <div class="cta-row">
@@ -43,7 +43,7 @@
           <div class="tip-card">
             <span class="pill">Tip</span>
             <p class="muted">
-              Best results: clear product photo, good lighting, and some empty space for text.
+              Use a clear product photo and leave some space so text looks clean.
             </p>
           </div>
         </div>
@@ -71,7 +71,7 @@
       <div class="container">
         <div class="results-header">
           <h2>Ad Builder</h2>
-          <p class="muted">Upload or capture, generate, preview, download/share.</p>
+          <p class="muted">Upload or capture, generate, preview, download/share, negotiate.</p>
         </div>
 
         <div class="builder-grid">
@@ -145,6 +145,12 @@
             </div>
 
             <div class="field">
+              <label class="label">Price (optional)</label>
+              <input id="priceInput" type="text" placeholder="Example: $30" />
+              <p class="help muted">This price is shown on the ad (static). No biometric pricing.</p>
+            </div>
+
+            <div class="field">
               <label class="label">Extra details</label>
               <input id="detailsInput" type="text" placeholder="Example: Phoenix, AZ • Shop now • @yourhandle" />
             </div>
@@ -156,7 +162,7 @@
 
             <div class="divider"></div>
 
-            <h3 class="panel-title">4) Export</h3>
+            <h3 class="panel-title">4) Export / Share</h3>
 
             <div class="row">
               <button id="downloadBtn" class="btn-secondary" type="button" disabled>Download PNG</button>
@@ -172,18 +178,43 @@
 
             <h3 class="panel-title">Optional: Reaction Mode (Safe)</h3>
             <p class="help muted">
-              This mode uses the camera only to detect “face presence / attention” and adjusts the
-              <strong>design emphasis</strong> (CTA glow), not pricing.
+              Adjusts <strong>design emphasis</strong> based on basic attention/brightness changes only.
+              It does not detect emotion and does not change price.
+            </p>
+
+            <div class="row">
+              <button id="startReaction" class="btn-secondary" type="button">Start Reaction Mode</button>
+              <button id="stopReaction" class="btn-ghost" type="button" disabled>Stop</button>
+            </div>
+            <p id="reactionStatus" class="help muted">Status: Off</p>
+
+            <div class="divider"></div>
+
+            <h3 class="panel-title">Negotiation (Demo)</h3>
+            <p class="help muted">
+              Buyer can make an offer. Seller can counter. Accept confirms the deal (demo only).
             </p>
 
             <div class="field">
-              <label class="label">Reaction Mode</label>
+              <label class="label">Buyer Offer</label>
               <div class="row">
-                <button id="startReaction" class="btn-secondary" type="button">Start Reaction Mode</button>
-                <button id="stopReaction" class="btn-ghost" type="button" disabled>Stop</button>
+                <input id="offerPriceInput" type="text" placeholder="Example: $25" />
+                <button id="sendOfferBtn" class="btn-secondary" type="button">Send Offer</button>
               </div>
-              <p id="reactionStatus" class="help muted">Status: Off</p>
             </div>
+
+            <div id="negotiationBox" class="neg-box">
+              <div class="neg-line"><span class="muted">Status:</span> <span id="negStatus">No negotiation yet.</span></div>
+              <div class="neg-actions hidden" id="negActions">
+                <div class="row" style="margin-top:10px;">
+                  <input id="counterPriceInput" type="text" placeholder="Counter: $28" />
+                  <button id="counterBtn" class="btn-secondary" type="button">Counter</button>
+                  <button id="acceptBtn" class="btn-primary" type="button">Accept</button>
+                  <button id="declineBtn" class="btn-ghost" type="button">Decline</button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Preview -->
@@ -219,10 +250,6 @@
               </div>
               <div id="ctaOut" class="copy-text">—</div>
             </div>
-
-            <p class="help muted" style="margin-top:10px;">
-              Want real AI prompts later? This MVP is ready to connect to an AI API.
-            </p>
           </div>
         </div>
       </div>
@@ -231,21 +258,19 @@
     <section id="features" class="info-section alt">
       <div class="container">
         <h2>Features</h2>
-        <p class="lead">
-          Camera + templates + prompts + instant preview + export/share.
-        </p>
+        <p class="lead">A clean, beginner-friendly MVP you can upgrade later.</p>
         <div class="cards-3">
           <div class="info-card">
             <h3>Fast Creation</h3>
-            <p>Generate clean ad layouts in seconds.</p>
+            <p>Templates + prompts + instant preview.</p>
           </div>
           <div class="info-card">
-            <h3>Mobile Sharing</h3>
-            <p>Download or share from your phone (AirDrop supported via share sheet).</p>
+            <h3>Export & Share</h3>
+            <p>Download PNG or share on mobile (AirDrop via share sheet).</p>
           </div>
           <div class="info-card">
-            <h3>Safe Reaction Mode</h3>
-            <p>Adjusts design emphasis based on attention — not pricing or biometrics.</p>
+            <h3>Negotiation UI</h3>
+            <p>Offer/counter/accept flow (demo).</p>
           </div>
         </div>
       </div>

@@ -297,6 +297,18 @@ input[type="text"]:focus, select:focus{
   background: rgba(255,255,255,0.03);
 }
 
+.neg-box{
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.20);
+  border-radius: 18px;
+  padding: 12px;
+}
+.neg-line{
+  color: var(--muted);
+  line-height: 1.6;
+}
+.neg-actions.hidden{ display:none; }
+
 .info-section{
   padding: 44px 0;
   border-top: 1px solid var(--line);
