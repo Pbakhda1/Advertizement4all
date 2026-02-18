@@ -1,6 +1,10 @@
-// Advertizement4all (A4A) - Front-end only MVP
-// Features: upload or camera capture, template + prompt style copy generation,
-// canvas preview, and download as PNG.
+// Advertizement4all MVP (front-end only)
+// - Upload or camera capture
+// - Templates + prompt styles (template-based generation)
+// - Canvas preview + download PNG
+// - Share (Web Share API) on mobile (AirDrop via iOS share sheet)
+// - Safe "Reaction Mode": uses camera to detect face presence/attention and adjusts design emphasis only.
+//   (No biometric pricing, no emotion inference, no manipulation.)
 
 const fileInput = document.getElementById("fileInput");
 const startCameraBtn = document.getElementById("startCamera");
@@ -20,6 +24,7 @@ const detailsInput = document.getElementById("detailsInput");
 const generateBtn = document.getElementById("generateBtn");
 const randomBtn = document.getElementById("randomBtn");
 const downloadBtn = document.getElementById("downloadBtn");
+const shareBtn = document.getElementById("shareBtn");
 const resetBtn = document.getElementById("resetBtn");
 
 const adCanvas = document.getElementById("adCanvas");
@@ -28,6 +33,10 @@ const ctx = adCanvas.getContext("2d");
 const headlineOut = document.getElementById("headlineOut");
 const bodyOut = document.getElementById("bodyOut");
 const ctaOut = document.getElementById("ctaOut");
+
+const startReactionBtn = document.getElementById("startReaction");
+const stopReactionBtn = document.getElementById("stopReaction");
+const reactionStatus = document.getElementById("reactionStatus");
 
 document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -38,293 +47,173 @@ document.getElementById("backToTop").addEventListener("click", (e) => {
 
 let stream = null;
 let currentImage = null; // HTMLImageElement
+let emphasis = 0.55;     // 0..1 affects CTA glow/contrast (safe adaptation)
+let reactionStream = null;
+let reactionTimer = null;
 
-// Default canvas draw
 drawEmptyCanvas();
 
-function drawEmptyCanvas(){
-  ctx.clearRect(0, 0, adCanvas.width, adCanvas.height);
-
-  // Background gradient
-  const g = ctx.createLinearGradient(0, 0, adCanvas.width, adCanvas.height);
-  g.addColorStop(0, "rgba(124,92,255,0.18)");
-  g.addColorStop(1, "rgba(45,212,191,0.12)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, adCanvas.width, adCanvas.height);
-
-  // Frame
-  ctx.strokeStyle = "rgba(255,255,255,0.18)";
-  ctx.lineWidth = 6;
-  roundRect(ctx, 30, 30, adCanvas.width - 60, adCanvas.height - 60, 40);
-  ctx.stroke();
-
-  // Text
-  ctx.fillStyle = "rgba(233,238,252,0.78)";
-  ctx.font = "800 54px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText("Advertizement4all", 80, 190);
-
-  ctx.font = "500 32px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillStyle = "rgba(233,238,252,0.68)";
-  ctx.fillText("Upload or capture an image", 80, 260);
-  ctx.fillText("then click Generate Ad.", 80, 310);
-
-  // Placeholder photo box
-  ctx.strokeStyle = "rgba(255,255,255,0.16)";
-  ctx.lineWidth = 4;
-  roundRect(ctx, 80, 380, adCanvas.width - 160, 720, 34);
-  ctx.stroke();
-
-  ctx.fillStyle = "rgba(233,238,252,0.55)";
-  ctx.font = "700 28px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText("Your image will appear here", 120, 760);
-}
-
-function roundRect(ctx, x, y, w, h, r){
-  const radius = Math.min(r, w/2, h/2);
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + w, y, x + w, y + h, radius);
-  ctx.arcTo(x + w, y + h, x, y + h, radius);
-  ctx.arcTo(x, y + h, x, y, radius);
-  ctx.arcTo(x, y, x + w, y, radius);
-  ctx.closePath();
-}
-
-// ---------------------
-// Image handling
-// ---------------------
-fileInput.addEventListener("change", async () => {
-  const file = fileInput.files?.[0];
-  if (!file) return;
-
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  img.onload = () => {
-    currentImage = img;
-    drawAdPreview(); // refresh preview
-    downloadBtn.disabled = false;
-    URL.revokeObjectURL(url);
-  };
-  img.src = url;
-});
-
-startCameraBtn.addEventListener("click", async () => {
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-    video.srcObject = stream;
-    video.classList.remove("hidden");
-    takePhotoBtn.disabled = false;
-    stopCameraBtn.disabled = false;
-  } catch (err){
-    alert("Camera permission denied or not available. You can still upload an image.");
-  }
-});
-
-takePhotoBtn.addEventListener("click", () => {
-  if (!stream) return;
-
-  const w = video.videoWidth || 1280;
-  const h = video.videoHeight || 720;
-
-  snapCanvas.width = w;
-  snapCanvas.height = h;
-
-  const sctx = snapCanvas.getContext("2d");
-  sctx.drawImage(video, 0, 0, w, h);
-
-  const dataUrl = snapCanvas.toDataURL("image/png");
-  const img = new Image();
-  img.onload = () => {
-    currentImage = img;
-    drawAdPreview();
-    downloadBtn.disabled = false;
-  };
-  img.src = dataUrl;
-});
-
-stopCameraBtn.addEventListener("click", () => {
-  stopCamera();
-});
-
-function stopCamera(){
-  if (stream){
-    stream.getTracks().forEach(t => t.stop());
-    stream = null;
-  }
-  video.srcObject = null;
-  video.classList.add("hidden");
-  takePhotoBtn.disabled = true;
-  stopCameraBtn.disabled = true;
-}
-
-// ---------------------
-// Ad copy generation (template-based “AI demo”)
-// ---------------------
+// ---------- Safe template copy ----------
 const COPY = {
   sale: {
     bold: {
-      headline: (brand, offer) => `${offer || "Big Sale Today"} — ${brand || "Limited Time"}`,
-      body: (brand, offer, details) => `Shop ${brand || "our store"} and grab ${offer || "special savings"} now. ${details || "Deals end soon."}`,
+      headline: (b, o) => `${o || "BIG SALE"} — ${b || "Today Only"}`,
+      body: (b, o, d) => `Shop ${b || "our store"} for ${o || "limited-time savings"}. ${d || "Don’t miss it."}`,
       cta: () => "Shop Now"
     },
     luxury: {
-      headline: (brand, offer) => `Exclusive Offer — ${brand || "Premium Selection"}`,
-      body: (brand, offer, details) => `${offer || "A refined deal"} crafted for those who expect the best. ${details || "Limited availability."}`,
-      cta: () => "Explore Collection"
+      headline: (b, o) => `Exclusive Offer — ${b || "Premium"}`,
+      body: (b, o, d) => `${o || "A refined deal"} built for those who expect more. ${d || "Limited availability."}`,
+      cta: () => "Explore"
     },
     minimal: {
-      headline: (brand, offer) => `${offer || "New Offer"}`,
-      body: (brand, offer, details) => `${brand || "Your brand"} • ${details || "Simple. Clean. Fast."}`,
+      headline: (b, o) => `${o || "New Offer"}`,
+      body: (b, o, d) => `${b || "Your brand"} • ${d || "Simple. Clean. Fast."}`,
       cta: () => "Learn More"
     },
     funny: {
-      headline: (brand, offer) => `${offer || "Deal Alert"} (Your wallet will smile 😄)`,
-      body: (brand, offer, details) => `At ${brand || "our place"}, we’re basically giving this away. ${details || "Come grab it before it runs off!"}`,
-      cta: () => "Get the Deal"
+      headline: (b, o) => `${o || "Deal Alert"} 😄`,
+      body: (b, o, d) => `At ${b || "our place"}, your wallet is about to smile. ${d || "Come grab it!"}`,
+      cta: () => "Get It"
     },
     urgent: {
-      headline: (brand, offer) => `Hurry! ${offer || "Limited-Time Deal"}`,
-      body: (brand, offer, details) => `Only a short window left at ${brand || "our store"}. ${details || "Don’t miss out."}`,
+      headline: (b, o) => `Hurry! ${o || "Limited-Time Deal"}`,
+      body: (b, o, d) => `Only a short window left at ${b || "our store"}. ${d || "Act now."}`,
       cta: () => "Claim Now"
     }
   },
-
   event: {
     bold: {
-      headline: (brand, offer) => `${offer || "Special Event"} — Hosted by ${brand || "Your Brand"}`,
-      body: (brand, offer, details) => `Join us for ${offer || "a must-see event"}. ${details || "Save the date and bring friends."}`,
-      cta: () => "Reserve Spot"
+      headline: (b, o) => `${o || "Special Event"} — ${b || "Hosted by us"}`,
+      body: (b, o, d) => `Join ${b || "us"} for ${o || "a great event"}. ${d || "Save the date."}`,
+      cta: () => "RSVP"
     },
     luxury: {
-      headline: (brand, offer) => `An Evening of Excellence — ${brand || "Exclusive Event"}`,
-      body: (brand, offer, details) => `${offer || "A premium experience"} designed to impress. ${details || "Limited seating."}`,
+      headline: (b, o) => `An Evening of Excellence — ${b || "Exclusive"}`,
+      body: (b, o, d) => `${o || "A premium experience"} designed to impress. ${d || "Limited seating."}`,
       cta: () => "Request Invite"
     },
     minimal: {
-      headline: (brand, offer) => `${offer || "Event Announcement"}`,
-      body: (brand, offer, details) => `${brand || "Hosted by us"} • ${details || "Details inside"}`,
-      cta: () => "See Details"
+      headline: (b, o) => `${o || "Event Announcement"}`,
+      body: (b, o, d) => `${b || "Hosted by us"} • ${d || "Details inside"}`,
+      cta: () => "Details"
     },
     funny: {
-      headline: (brand, offer) => `${offer || "Party Time"} 🎉`,
-      body: (brand, offer, details) => `Come hang with ${brand || "us"} — it’ll be legendary. ${details || "You in?"}`,
+      headline: (b, o) => `${o || "Party Time"} 🎉`,
+      body: (b, o, d) => `Come through with ${b || "us"} — it’ll be legendary. ${d || ""}`,
       cta: () => "I’m In"
     },
     urgent: {
-      headline: (brand, offer) => `Last Call — ${offer || "Event"}!`,
-      body: (brand, offer, details) => `Spots are filling fast for ${brand || "our event"}. ${details || "Register ASAP."}`,
-      cta: () => "Register Now"
+      headline: (b, o) => `Last Call — ${o || "Event"}!`,
+      body: (b, o, d) => `Spots are filling fast for ${b || "our event"}. ${d || "Register ASAP."}`,
+      cta: () => "Register"
     }
   },
-
   hiring: {
     bold: {
-      headline: (brand, offer) => `Now Hiring — ${offer || "Join Our Team"}`,
-      body: (brand, offer, details) => `${brand || "We"} are hiring now. ${offer || "Great role"} with strong growth potential. ${details || "Apply today."}`,
+      headline: (b, o) => `Now Hiring — ${o || "Join Our Team"}`,
+      body: (b, o, d) => `${b || "We"} are hiring now. ${o || "Great role"} with growth. ${d || "Apply today."}`,
       cta: () => "Apply Now"
     },
     luxury: {
-      headline: (brand, offer) => `Careers at ${brand || "Our Company"}`,
-      body: (brand, offer, details) => `${offer || "A premium opportunity"} for top talent. ${details || "Professional environment."}`,
+      headline: (b, o) => `Careers at ${b || "Our Company"}`,
+      body: (b, o, d) => `${o || "A premium opportunity"} for top talent. ${d || "Professional environment."}`,
       cta: () => "View Openings"
     },
     minimal: {
-      headline: (brand, offer) => `Hiring: ${offer || "Open Role"}`,
-      body: (brand, offer, details) => `${brand || "Company"} • ${details || "Send resume"}`,
+      headline: (b, o) => `Hiring: ${o || "Open Role"}`,
+      body: (b, o, d) => `${b || "Company"} • ${d || "Send resume"}`,
       cta: () => "Contact"
     },
     funny: {
-      headline: (brand, offer) => `We Need You 😄`,
-      body: (brand, offer, details) => `${brand || "We"} promise meetings aren’t scary. ${offer || "Great job"} — ${details || "Apply now!"}`,
+      headline: (b, o) => `We Need You 😄`,
+      body: (b, o, d) => `${b || "We"} promise the job is cooler than it sounds. ${d || "Apply now!"}`,
       cta: () => "Join Us"
     },
     urgent: {
-      headline: (brand, offer) => `Hiring Fast — ${offer || "Immediate Openings"}`,
-      body: (brand, offer, details) => `Positions closing soon at ${brand || "our company"}. ${details || "Apply today."}`,
+      headline: (b, o) => `Hiring Fast — ${o || "Openings"}`,
+      body: (b, o, d) => `Positions closing soon at ${b || "our company"}. ${d || "Apply today."}`,
       cta: () => "Apply Today"
     }
   },
-
   realestate: {
     bold: {
-      headline: (brand, offer) => `${offer || "New Listing"} — ${brand || "Prime Location"}`,
-      body: (brand, offer, details) => `Don’t miss this opportunity. ${details || "Schedule a showing today."}`,
+      headline: (b, o) => `${o || "New Listing"} — ${b || "Prime Location"}`,
+      body: (b, o, d) => `Don’t miss this opportunity. ${d || "Schedule a showing today."}`,
       cta: () => "Schedule Tour"
     },
     luxury: {
-      headline: (brand, offer) => `Luxury Living — ${offer || "Now Available"}`,
-      body: (brand, offer, details) => `${brand || "A premium property"} with exceptional details. ${details || "Serious inquiries only."}`,
+      headline: (b, o) => `Luxury Living — ${o || "Now Available"}`,
+      body: (b, o, d) => `${b || "A premium property"} with exceptional details. ${d || "Inquire today."}`,
       cta: () => "View Details"
     },
     minimal: {
-      headline: (brand, offer) => `${offer || "Property Available"}`,
-      body: (brand, offer, details) => `${details || "Contact for info"}`,
+      headline: (b, o) => `${o || "Property Available"}`,
+      body: (b, o, d) => `${d || "Contact for info"}`,
       cta: () => "Inquire"
     },
     funny: {
-      headline: (brand, offer) => `${offer || "Your New Home"} 🏡`,
-      body: (brand, offer, details) => `Warning: you may never want to leave. ${details || "Come see it!"}`,
+      headline: (b, o) => `${o || "Your New Home"} 🏡`,
+      body: (b, o, d) => `Warning: you may never want to leave. ${d || "Come see it!"}`,
       cta: () => "Tour It"
     },
     urgent: {
-      headline: (brand, offer) => `Hot Listing — Act Fast!`,
-      body: (brand, offer, details) => `${offer || "This home"} won’t last. ${details || "Book a tour today."}`,
+      headline: () => `Hot Listing — Act Fast!`,
+      body: (b, o, d) => `${o || "This home"} won’t last. ${d || "Book a tour today."}`,
       cta: () => "Book Now"
     }
   },
-
   food: {
     bold: {
-      headline: (brand, offer) => `${offer || "Today’s Special"} — ${brand || "Fresh & Delicious"}`,
-      body: (brand, offer, details) => `Come taste it today. ${details || "Dine-in or takeout."}`,
+      headline: (b, o) => `${o || "Today’s Special"} — ${b || "Fresh & Delicious"}`,
+      body: (b, o, d) => `Come taste it today. ${d || "Dine-in or takeout."}`,
       cta: () => "Order Now"
     },
     luxury: {
-      headline: (brand, offer) => `Chef’s Selection — ${offer || "Premium Special"}`,
-      body: (brand, offer, details) => `${brand || "A refined bite"} crafted to impress. ${details || "Limited servings."}`,
-      cta: () => "Reserve Table"
+      headline: (b, o) => `Chef’s Selection — ${o || "Premium Special"}`,
+      body: (b, o, d) => `${b || "A refined bite"} crafted to impress. ${d || "Limited servings."}`,
+      cta: () => "Reserve"
     },
     minimal: {
-      headline: (brand, offer) => `${offer || "Special"}`,
-      body: (brand, offer, details) => `${brand || "Restaurant"} • ${details || "Open today"}`,
+      headline: (b, o) => `${o || "Special"}`,
+      body: (b, o, d) => `${b || "Restaurant"} • ${d || "Open today"}`,
       cta: () => "Menu"
     },
     funny: {
-      headline: (brand, offer) => `${offer || "Food Alert"} 🍔`,
-      body: (brand, offer, details) => `Your stomach called. It wants ${offer || "this"} from ${brand || "us"}. ${details || ""}`,
+      headline: (b, o) => `${o || "Food Alert"} 🍔`,
+      body: (b, o, d) => `Your stomach called. It wants ${o || "this"} from ${b || "us"}. ${d || ""}`,
       cta: () => "Feed Me"
     },
     urgent: {
-      headline: (brand, offer) => `Limited Special — Today Only!`,
-      body: (brand, offer, details) => `${offer || "This deal"} ends soon. ${details || "Order now."}`,
+      headline: () => `Limited Special — Today Only!`,
+      body: (b, o, d) => `${o || "This deal"} ends soon. ${d || "Order now."}`,
       cta: () => "Order Fast"
     }
   },
-
   apppromo: {
     bold: {
-      headline: (brand, offer) => `${brand || "New App"} — ${offer || "Try It Today"}`,
-      body: (brand, offer, details) => `Simple. Powerful. Built for speed. ${details || "Download and start now."}`,
-      cta: () => "Download"
+      headline: (b, o) => `${b || "New Product"} — ${o || "Try It Today"}`,
+      body: (b, o, d) => `Simple. Powerful. Built for speed. ${d || "Download now."}`,
+      cta: () => "Get Started"
     },
     luxury: {
-      headline: (brand, offer) => `A Premium Experience — ${brand || "Your Product"}`,
-      body: (brand, offer, details) => `${offer || "Designed for quality"} and built to stand out. ${details || "Try it today."}`,
+      headline: (b) => `A Premium Experience — ${b || "Your Product"}`,
+      body: (b, o, d) => `${o || "Designed for quality"} and built to stand out. ${d || "Try it today."}`,
       cta: () => "Get Access"
     },
     minimal: {
-      headline: (brand, offer) => `${brand || "Product"} • ${offer || "Now Live"}`,
-      body: (brand, offer, details) => `${details || "Tap to learn more"}`,
+      headline: (b, o) => `${b || "Product"} • ${o || "Now Live"}`,
+      body: (b, o, d) => `${d || "Tap to learn more"}`,
       cta: () => "Learn More"
     },
     funny: {
-      headline: (brand, offer) => `${brand || "New App"} 😄`,
-      body: (brand, offer, details) => `It’s like magic, but legal. ${offer || "Try it"} — ${details || "Your future self will thank you."}`,
+      headline: (b) => `${b || "New App"} 😄`,
+      body: (b, o, d) => `It’s like magic, but legal. ${o || "Try it"} — ${d || ""}`,
       cta: () => "Try It"
     },
     urgent: {
-      headline: (brand, offer) => `Limited Launch Offer!`,
-      body: (brand, offer, details) => `${brand || "Our product"} is live. ${offer || "Early access"} ends soon. ${details || ""}`,
+      headline: () => `Limited Launch Offer!`,
+      body: (b, o, d) => `${b || "Our product"} is live. ${o || "Early access"} ends soon. ${d || ""}`,
       cta: () => "Start Now"
     }
   }
@@ -338,9 +227,9 @@ function generateCopy(){
   const template = templateSelect.value;
   const style = promptSelect.value;
 
-  const brand = brandInput.value.trim();
-  const offer = offerInput.value.trim();
-  const details = detailsInput.value.trim();
+  const brand = brandInput.value.trim() || "Your Brand";
+  const offer = offerInput.value.trim() || "Your Offer Here";
+  const details = detailsInput.value.trim() || "Add details like phone, location, website";
 
   const pack = safePick(COPY[template], style, "bold");
 
@@ -352,50 +241,52 @@ function generateCopy(){
   bodyOut.textContent = body;
   ctaOut.textContent = cta;
 
-  return { headline, body, cta, brand, offer, details, template, style };
+  return { headline, body, cta, brand, offer, details };
 }
 
-// ---------------------
-// Canvas Ad Render
-// ---------------------
-function drawAdPreview(){
-  // If no image yet, draw placeholder
-  if (!currentImage){
-    drawEmptyCanvas();
-    return;
-  }
+// ---------- Canvas drawing ----------
+function drawEmptyCanvas(){
+  ctx.clearRect(0, 0, adCanvas.width, adCanvas.height);
+  const g = ctx.createLinearGradient(0, 0, adCanvas.width, adCanvas.height);
+  g.addColorStop(0, "rgba(124,92,255,0.18)");
+  g.addColorStop(1, "rgba(45,212,191,0.12)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, adCanvas.width, adCanvas.height);
 
-  const copy = generateCopyForPreview();
-  drawAd(currentImage, copy);
-}
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth = 6;
+  roundRect(ctx, 30, 30, adCanvas.width - 60, adCanvas.height - 60, 40);
+  ctx.stroke();
 
-function generateCopyForPreview(){
-  // If user hasn't clicked generate, still show something
-  const brand = brandInput.value.trim() || "Your Brand";
-  const offer = offerInput.value.trim() || "Your Offer Here";
-  const details = detailsInput.value.trim() || "Add details like phone, location, website";
-  const template = templateSelect.value;
-  const style = promptSelect.value;
+  ctx.fillStyle = "rgba(233,238,252,0.85)";
+  ctx.font = "900 54px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Advertizement4all", 80, 190);
 
-  const pack = safePick(COPY[template], style, "bold");
-  return {
-    headline: pack.headline(brand, offer),
-    body: pack.body(brand, offer, details),
-    cta: pack.cta(brand, offer, details),
-    brand, offer, details
-  };
+  ctx.fillStyle = "rgba(233,238,252,0.68)";
+  ctx.font = "600 32px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Upload or capture an image", 80, 260);
+  ctx.fillText("then click Generate Ad.", 80, 310);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.16)";
+  ctx.lineWidth = 4;
+  roundRect(ctx, 80, 380, adCanvas.width - 160, 720, 34);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(233,238,252,0.55)";
+  ctx.font = "700 28px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("Your image will appear here", 120, 760);
 }
 
 function drawAd(img, copy){
-  ctx.clearRect(0, 0, adCanvas.width, adCanvas.height);
-
-  // Draw image as background (cover)
   const cw = adCanvas.width;
   const ch = adCanvas.height;
+  ctx.clearRect(0, 0, cw, ch);
+
+  // cover background image
   const ir = img.width / img.height;
   const cr = cw / ch;
-
   let dw, dh, dx, dy;
+
   if (ir > cr){
     dh = ch;
     dw = dh * ir;
@@ -409,34 +300,34 @@ function drawAd(img, copy){
   }
   ctx.drawImage(img, dx, dy, dw, dh);
 
-  // Dark overlay gradient for text readability
+  // overlay gradient
   const grad = ctx.createLinearGradient(0, 0, 0, ch);
-  grad.addColorStop(0, "rgba(0,0,0,0.15)");
-  grad.addColorStop(0.55, "rgba(0,0,0,0.55)");
-  grad.addColorStop(1, "rgba(0,0,0,0.78)");
+  grad.addColorStop(0, "rgba(0,0,0,0.18)");
+  grad.addColorStop(0.55, `rgba(0,0,0,${0.45 + emphasis * 0.25})`);
+  grad.addColorStop(1, `rgba(0,0,0,${0.72 + emphasis * 0.18})`);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, cw, ch);
 
-  // Accent top bar
+  // accent bar
   ctx.fillStyle = "rgba(124,92,255,0.85)";
   roundRect(ctx, 60, 60, cw - 120, 16, 10);
   ctx.fill();
 
-  // Title text area
   const padX = 90;
   let y = 180;
 
-  ctx.fillStyle = "rgba(233,238,252,0.95)";
+  // headline
+  ctx.fillStyle = "rgba(233,238,252,0.96)";
   ctx.font = "900 78px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
   y = wrapText(copy.headline, padX, y, cw - padX*2, 86);
 
-  // Body text
-  ctx.fillStyle = "rgba(233,238,252,0.80)";
-  ctx.font = "600 38px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  // body
+  ctx.fillStyle = "rgba(233,238,252,0.82)";
+  ctx.font = "700 38px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
   y += 18;
   y = wrapText(copy.body, padX, y, cw - padX*2, 52);
 
-  // CTA button
+  // CTA button with safe emphasis
   const btnText = copy.cta.toUpperCase();
   ctx.font = "900 34px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
   const textW = ctx.measureText(btnText).width;
@@ -446,26 +337,32 @@ function drawAd(img, copy){
   const btnX = padX;
   const btnY = ch - 170;
 
-  // CTA background
+  // glow (emphasis)
+  ctx.save();
+  ctx.shadowColor = `rgba(124,92,255,${0.15 + emphasis * 0.35})`;
+  ctx.shadowBlur = 30 + emphasis * 40;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 12;
+
   const ctag = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
   ctag.addColorStop(0, "rgba(124,92,255,1)");
   ctag.addColorStop(1, "rgba(45,212,191,0.9)");
   ctx.fillStyle = ctag;
   roundRect(ctx, btnX, btnY, btnW, btnH, 22);
   ctx.fill();
+  ctx.restore();
 
-  // CTA text
   ctx.fillStyle = "rgba(11,15,23,0.95)";
   ctx.fillText(btnText, btnX + 40, btnY + 56);
 
-  // Footer brand
-  ctx.fillStyle = "rgba(233,238,252,0.70)";
-  ctx.font = "700 26px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  // footer
+  ctx.fillStyle = "rgba(233,238,252,0.72)";
+  ctx.font = "800 26px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillText(copy.brand, padX, ch - 80);
-  ctx.font = "600 22px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.font = "700 22px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
   ctx.fillText("Made with Advertizement4all", padX, ch - 46);
 
-  // Frame
+  // frame
   ctx.strokeStyle = "rgba(255,255,255,0.18)";
   ctx.lineWidth = 6;
   roundRect(ctx, 30, 30, cw - 60, ch - 60, 40);
@@ -488,8 +385,7 @@ function wrapText(text, x, y, maxWidth, lineHeight){
   let line = "";
   for (let n = 0; n < words.length; n++){
     const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    const testWidth = metrics.width;
+    const testWidth = ctx.measureText(testLine).width;
     if (testWidth > maxWidth && n > 0){
       ctx.fillText(line.trim(), x, y);
       line = words[n] + " ";
@@ -502,66 +398,114 @@ function wrapText(text, x, y, maxWidth, lineHeight){
   return y + lineHeight;
 }
 
-// ---------------------
-// Buttons & actions
-// ---------------------
+// ---------- Upload ----------
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files?.[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    currentImage = img;
+    const copy = generateCopy();
+    drawAd(currentImage, copy);
+    downloadBtn.disabled = false;
+    shareBtn.disabled = false;
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+// ---------- Camera capture ----------
+startCameraBtn.addEventListener("click", async () => {
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    video.srcObject = stream;
+    video.classList.remove("hidden");
+    takePhotoBtn.disabled = false;
+    stopCameraBtn.disabled = false;
+  } catch {
+    alert("Camera not available or permission denied. You can still upload an image.");
+  }
+});
+
+takePhotoBtn.addEventListener("click", () => {
+  if (!stream) return;
+  const w = video.videoWidth || 1280;
+  const h = video.videoHeight || 720;
+
+  snapCanvas.width = w;
+  snapCanvas.height = h;
+
+  const sctx = snapCanvas.getContext("2d");
+  sctx.drawImage(video, 0, 0, w, h);
+
+  const dataUrl = snapCanvas.toDataURL("image/png");
+  const img = new Image();
+  img.onload = () => {
+    currentImage = img;
+    const copy = generateCopy();
+    drawAd(currentImage, copy);
+    downloadBtn.disabled = false;
+    shareBtn.disabled = false;
+  };
+  img.src = dataUrl;
+});
+
+stopCameraBtn.addEventListener("click", stopCamera);
+
+function stopCamera(){
+  if (stream){
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  video.classList.add("hidden");
+  takePhotoBtn.disabled = true;
+  stopCameraBtn.disabled = true;
+}
+
+// ---------- Generate / Random / Reset ----------
 generateBtn.addEventListener("click", () => {
   const copy = generateCopy();
-
   if (!currentImage){
     alert("Please upload an image or take a photo first.");
     return;
   }
   drawAd(currentImage, copy);
   downloadBtn.disabled = false;
+  shareBtn.disabled = false;
 });
 
 randomBtn.addEventListener("click", () => {
-  const brands = ["Parth Media Lab", "Phoenix Deals", "Desert Shine", "OSSS Studios", "Skyline Realty", "Fresh Bite"];
-  const offers = ["30% OFF Today", "Grand Opening", "Hiring Now", "Luxury Listing", "2-for-1 Special", "Download Now"];
+  const brands = ["Parth Streetwear", "Phoenix Deals", "Desert Shine", "A4A Studio", "Skyline Realty", "Fresh Bite"];
+  const offers = ["NEW DROP • LIMITED", "30% OFF TODAY", "HIRING NOW", "OPEN HOUSE THIS WEEKEND", "2-FOR-1 SPECIAL", "DOWNLOAD NOW"];
   const details = [
-    "Phoenix, AZ • Limited time",
-    "This weekend • RSVP now",
-    "Apply today • Great pay",
+    "Phoenix, AZ • Shop now • @yourhandle",
+    "Limited time • While supplies last",
+    "Apply today • Fast hiring",
     "3 bed • 2 bath • Tour today",
-    "Order pickup or delivery",
-    "Available on iOS & Android"
+    "Pickup or delivery • Order now",
+    "Available now • Try it free"
   ];
 
   brandInput.value = brands[Math.floor(Math.random() * brands.length)];
   offerInput.value = offers[Math.floor(Math.random() * offers.length)];
   detailsInput.value = details[Math.floor(Math.random() * details.length)];
 
-  // change template/style randomly
   const templates = ["sale","event","hiring","realestate","food","apppromo"];
   const styles = ["bold","luxury","minimal","funny","urgent"];
   templateSelect.value = templates[Math.floor(Math.random() * templates.length)];
   promptSelect.value = styles[Math.floor(Math.random() * styles.length)];
 
-  // If image exists, redraw preview
-  if (currentImage) {
-    const copy = generateCopy();
-    drawAd(currentImage, copy);
-    downloadBtn.disabled = false;
-  } else {
-    // just update text outputs
-    generateCopy();
-  }
-});
-
-downloadBtn.addEventListener("click", () => {
-  if (!currentImage){
-    alert("Please upload an image or take a photo first.");
-    return;
-  }
-  const link = document.createElement("a");
-  link.download = `Advertizement4all_ad_${Date.now()}.png`;
-  link.href = adCanvas.toDataURL("image/png");
-  link.click();
+  const copy = generateCopy();
+  if (currentImage) drawAd(currentImage, copy);
 });
 
 resetBtn.addEventListener("click", () => {
   stopCamera();
+  stopReactionMode();
+
   fileInput.value = "";
   brandInput.value = "";
   offerInput.value = "";
@@ -575,18 +519,60 @@ resetBtn.addEventListener("click", () => {
 
   currentImage = null;
   downloadBtn.disabled = true;
+  shareBtn.disabled = true;
+
+  emphasis = 0.55;
   drawEmptyCanvas();
 });
 
-// Live redraw when user changes options (if image exists)
+// live redraw on edits (if image exists)
 [templateSelect, promptSelect, brandInput, offerInput, detailsInput].forEach(el => {
   el.addEventListener("input", () => {
+    const copy = generateCopy();
     if (!currentImage) return;
-    drawAdPreview();
+    drawAd(currentImage, copy);
   });
 });
 
-// Copy buttons
+// ---------- Download ----------
+downloadBtn.addEventListener("click", () => {
+  if (!currentImage) return;
+  const link = document.createElement("a");
+  link.download = `Advertizement4all_ad_${Date.now()}.png`;
+  link.href = adCanvas.toDataURL("image/png");
+  link.click();
+});
+
+// ---------- Share (AirDrop via iOS share sheet) ----------
+shareBtn.addEventListener("click", async () => {
+  if (!currentImage) return;
+
+  // Convert canvas to Blob so we can share a file
+  const blob = await new Promise(resolve => adCanvas.toBlob(resolve, "image/png"));
+  if (!blob){
+    alert("Share failed. Please try Download PNG instead.");
+    return;
+  }
+
+  const file = new File([blob], `Advertizement4all_ad.png`, { type: "image/png" });
+
+  // Web Share API (works on many mobile browsers; best on iOS Safari/Chrome)
+  if (navigator.canShare && navigator.canShare({ files: [file] })){
+    try{
+      await navigator.share({
+        title: "Advertizement4all Ad",
+        text: "Made with Advertizement4all",
+        files: [file]
+      });
+    } catch {
+      // user cancelled or share failed
+    }
+  } else {
+    alert("Sharing is not supported in this browser. Use Download PNG, then share/AirDrop from your Files/Photos app.");
+  }
+});
+
+// ---------- Copy buttons ----------
 document.querySelectorAll(".copy-btn").forEach(btn => {
   btn.addEventListener("click", async () => {
     const which = btn.getAttribute("data-copy");
@@ -600,7 +586,86 @@ document.querySelectorAll(".copy-btn").forEach(btn => {
       btn.textContent = "Copied!";
       setTimeout(() => (btn.textContent = "Copy"), 900);
     } catch {
-      alert("Copy failed. You can manually select the text and copy.");
+      alert("Copy failed. You can manually select and copy.");
     }
   });
 });
+
+// ---------- SAFE Reaction Mode (attention → design emphasis only) ----------
+// This is a simple, privacy-friendly demo: it checks frame brightness changes to approximate
+// "attention" (NOT emotion). If user is steady/close, emphasis increases slightly.
+// No storage, no face ID, no pricing changes.
+
+startReactionBtn.addEventListener("click", startReactionMode);
+stopReactionBtn.addEventListener("click", stopReactionMode);
+
+async function startReactionMode(){
+  if (reactionStream) return;
+
+  try{
+    reactionStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    // reuse the same <video> element if normal camera isn't running
+    video.srcObject = reactionStream;
+    video.classList.remove("hidden");
+
+    startReactionBtn.disabled = true;
+    stopReactionBtn.disabled = false;
+    reactionStatus.textContent = "Status: Running (design emphasis adapts)";
+
+    // small analysis loop
+    reactionTimer = setInterval(() => {
+      if (!video.videoWidth || !video.videoHeight) return;
+
+      // sample a tiny frame for brightness stability
+      const w = 64, h = 64;
+      snapCanvas.width = w;
+      snapCanvas.height = h;
+      const sctx = snapCanvas.getContext("2d", { willReadFrequently: true });
+      sctx.drawImage(video, 0, 0, w, h);
+      const data = sctx.getImageData(0, 0, w, h).data;
+
+      let sum = 0;
+      for (let i = 0; i < data.length; i += 4){
+        // luminance
+        sum += (0.2126 * data[i] + 0.7152 * data[i+1] + 0.0722 * data[i+2]);
+      }
+      const avg = sum / (w*h);
+
+      // Map avg brightness to gentle emphasis adjustments
+      // (Just a visual demo; no emotion inference.)
+      const target = clamp((avg - 40) / 180, 0.25, 0.95);
+      emphasis = lerp(emphasis, target, 0.08);
+
+      if (currentImage){
+        const copy = generateCopy();
+        drawAd(currentImage, copy);
+      }
+    }, 250);
+
+  } catch {
+    alert("Reaction Mode needs camera permission. You can still use upload + generate without it.");
+  }
+}
+
+function stopReactionMode(){
+  if (reactionTimer){
+    clearInterval(reactionTimer);
+    reactionTimer = null;
+  }
+  if (reactionStream){
+    reactionStream.getTracks().forEach(t => t.stop());
+    reactionStream = null;
+  }
+  // If normal camera stream isn't active, clear video
+  if (!stream){
+    video.srcObject = null;
+    video.classList.add("hidden");
+  }
+
+  startReactionBtn.disabled = false;
+  stopReactionBtn.disabled = true;
+  reactionStatus.textContent = "Status: Off";
+}
+
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function lerp(a, b, t){ return a + (b - a) * t; }

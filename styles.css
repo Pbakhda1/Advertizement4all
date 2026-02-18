@@ -86,7 +86,6 @@ a:hover{ text-decoration: underline; }
   gap: 26px;
   align-items: start;
 }
-
 .hero-left h2{
   font-size: 42px;
   line-height: 1.08;
@@ -108,13 +107,6 @@ a:hover{ text-decoration: underline; }
   background: rgba(255,255,255,0.05);
   color: var(--text);
   font-size: 12px;
-}
-
-.cta-row{
-  margin-top: 14px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 
 button{
@@ -139,6 +131,7 @@ button{
   border: 1px solid var(--line);
   background: rgba(255,255,255,0.05);
   font-weight: 800;
+  color: var(--text);
 }
 .btn-ghost{
   display: inline-flex;
@@ -156,6 +149,13 @@ button{
   color: var(--text);
 }
 
+.cta-row{
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .stats-card, .tip-card{
   border: 1px solid var(--line);
   background: rgba(255,255,255,0.05);
@@ -170,7 +170,6 @@ button{
 }
 
 .results-section{ padding: 22px 0 44px 0; }
-
 .results-header{
   display: flex;
   justify-content: space-between;
@@ -192,18 +191,16 @@ button{
   padding: 14px;
 }
 
-.panel-title{
-  margin: 0 0 10px 0;
-  font-size: 16px;
-}
-
+.panel-title{ margin: 0 0 10px 0; font-size: 16px; }
 .field{ margin-bottom: 12px; }
+
 .label{
   display:block;
   font-weight: 800;
   font-size: 13px;
   margin-bottom: 6px;
 }
+
 .help{
   margin: 6px 0 0 0;
   font-size: 12px;
@@ -237,9 +234,7 @@ input[type="text"]:focus, select:focus{
   margin: 12px 0;
 }
 
-.camera-wrap{
-  margin-top: 10px;
-}
+.camera-wrap{ margin-top: 10px; }
 .camera{
   width: 100%;
   border-radius: 14px;
@@ -280,10 +275,7 @@ input[type="text"]:focus, select:focus{
 }
 .copy-row:first-child{ margin-top: 0; }
 
-.copy-label{
-  font-weight: 900;
-  font-size: 13px;
-}
+.copy-label{ font-weight: 900; font-size: 13px; }
 
 .copy-btn{
   border: 1px solid rgba(255,255,255,0.14);

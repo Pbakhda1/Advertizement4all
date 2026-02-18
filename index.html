@@ -8,7 +8,6 @@
 </head>
 
 <body>
-  <!-- Header -->
   <header class="header">
     <div class="container nav">
       <div class="brand">
@@ -27,25 +26,24 @@
   </header>
 
   <main>
-    <!-- Hero -->
     <section class="hero">
       <div class="container hero-grid">
         <div class="hero-left">
           <h2>Turn any photo into an advertisement.</h2>
           <p class="subtext">
-            Use your camera or upload an image, choose a template + prompt style, and generate ad copy instantly.
-            Then download your ad as a PNG.
+            Use your camera or upload an image, pick a template + prompt style, generate copy,
+            preview instantly, and export as a shareable PNG.
           </p>
 
           <div class="cta-row">
             <a class="btn-secondary" href="#builder">Start building</a>
-            <a class="btn-ghost" href="#templates">Templates</a>
+            <a class="btn-ghost" href="#features">Features</a>
           </div>
 
           <div class="tip-card">
-            <div class="pill">Tip</div>
+            <span class="pill">Tip</span>
             <p class="muted">
-              For best results: use a clear photo, good lighting, and leave empty space where text can go.
+              Best results: clear product photo, good lighting, and some empty space for text.
             </p>
           </div>
         </div>
@@ -56,36 +54,35 @@
             <ul>
               <li><strong>Sale ads</strong> (discounts, promo codes)</li>
               <li><strong>Event flyers</strong> (date/time/location)</li>
-              <li><strong>Hiring ads</strong> (job + pay + apply link)</li>
+              <li><strong>Hiring ads</strong> (job + apply)</li>
               <li><strong>Real estate</strong> (price + features)</li>
-              <li><strong>Food ads</strong> (menu special)</li>
-              <li><strong>App promos</strong> (features + CTA)</li>
+              <li><strong>Food promos</strong> (specials)</li>
+              <li><strong>App/product promos</strong> (features + CTA)</li>
             </ul>
             <p class="small muted">
-              This is an MVP demo. You can later connect real AI (OpenAI API) to generate unlimited copy styles.
+              Share button works on mobile (iOS share sheet → AirDrop supported).
             </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Builder -->
     <section id="builder" class="results-section">
       <div class="container">
         <div class="results-header">
           <h2>Ad Builder</h2>
-          <p class="muted">Upload or capture an image, choose a template, generate, and download.</p>
+          <p class="muted">Upload or capture, generate, preview, download/share.</p>
         </div>
 
         <div class="builder-grid">
-          <!-- Left: Controls -->
+          <!-- Controls -->
           <div class="panel">
             <h3 class="panel-title">1) Add a photo</h3>
 
             <div class="field">
               <label class="label">Upload an image</label>
               <input id="fileInput" type="file" accept="image/*" />
-              <p class="help">Choose a JPG/PNG from your computer or phone.</p>
+              <p class="help">Choose a JPG/PNG from your device.</p>
             </div>
 
             <div class="divider"></div>
@@ -103,14 +100,12 @@
                 <canvas id="snapCanvas" class="hidden"></canvas>
               </div>
 
-              <p class="help muted">
-                If your browser asks for permission, choose <strong>Allow</strong>.
-              </p>
+              <p class="help muted">If prompted, tap <strong>Allow</strong> camera access.</p>
             </div>
 
             <div class="divider"></div>
 
-            <h3 class="panel-title">2) Choose your ad style</h3>
+            <h3 class="panel-title">2) Template + Prompt Style</h3>
 
             <div class="field">
               <label class="label">Ad Template</label>
@@ -137,21 +132,21 @@
 
             <div class="divider"></div>
 
-            <h3 class="panel-title">3) Enter your details</h3>
+            <h3 class="panel-title">3) Your details</h3>
 
             <div class="field">
-              <label class="label">Brand / Business Name</label>
-              <input id="brandInput" type="text" placeholder="Example: Parth's Auto Detail" />
+              <label class="label">Brand / Business</label>
+              <input id="brandInput" type="text" placeholder="Example: Parth’s Streetwear" />
             </div>
 
             <div class="field">
               <label class="label">Offer / Key Message</label>
-              <input id="offerInput" type="text" placeholder="Example: 30% OFF Full Service Today" />
+              <input id="offerInput" type="text" placeholder="Example: New Drop • Limited Stock" />
             </div>
 
             <div class="field">
-              <label class="label">Extra details (optional)</label>
-              <input id="detailsInput" type="text" placeholder="Example: Call 555-1234 • Phoenix, AZ • Limited time" />
+              <label class="label">Extra details</label>
+              <input id="detailsInput" type="text" placeholder="Example: Phoenix, AZ • Shop now • @yourhandle" />
             </div>
 
             <div class="row">
@@ -161,25 +156,44 @@
 
             <div class="divider"></div>
 
-            <h3 class="panel-title">4) Download</h3>
+            <h3 class="panel-title">4) Export</h3>
+
             <div class="row">
               <button id="downloadBtn" class="btn-secondary" type="button" disabled>Download PNG</button>
+              <button id="shareBtn" class="btn-secondary" type="button" disabled>Share (Phone)</button>
               <button id="resetBtn" class="btn-ghost" type="button">Reset</button>
             </div>
 
             <p class="help muted">
-              Download creates a PNG from the preview (image + overlay text).
+              On iPhone Safari, Share opens the share sheet (AirDrop available there).
             </p>
+
+            <div class="divider"></div>
+
+            <h3 class="panel-title">Optional: Reaction Mode (Safe)</h3>
+            <p class="help muted">
+              This mode uses the camera only to detect “face presence / attention” and adjusts the
+              <strong>design emphasis</strong> (CTA glow), not pricing.
+            </p>
+
+            <div class="field">
+              <label class="label">Reaction Mode</label>
+              <div class="row">
+                <button id="startReaction" class="btn-secondary" type="button">Start Reaction Mode</button>
+                <button id="stopReaction" class="btn-ghost" type="button" disabled>Stop</button>
+              </div>
+              <p id="reactionStatus" class="help muted">Status: Off</p>
+            </div>
           </div>
 
-          <!-- Right: Preview -->
+          <!-- Preview -->
           <div class="panel">
             <h3 class="panel-title">Live Preview</h3>
 
             <div class="preview-wrap">
               <canvas id="adCanvas" width="1080" height="1350" class="ad-canvas"></canvas>
               <div class="preview-note muted small">
-                Preview size: 1080×1350 (Instagram portrait). Download exports PNG.
+                Size: 1080×1350 (IG portrait). Download exports PNG.
               </div>
             </div>
 
@@ -205,41 +219,38 @@
               </div>
               <div id="ctaOut" class="copy-text">—</div>
             </div>
+
+            <p class="help muted" style="margin-top:10px;">
+              Want real AI prompts later? This MVP is ready to connect to an AI API.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Templates -->
-    <section id="templates" class="info-section alt">
+    <section id="features" class="info-section alt">
       <div class="container">
-        <h2>Templates</h2>
+        <h2>Features</h2>
         <p class="lead">
-          Choose a template and prompt style — Advertizement4all generates text and builds a clean ad layout automatically.
+          Camera + templates + prompts + instant preview + export/share.
         </p>
-
         <div class="cards-3">
           <div class="info-card">
-            <h3>Sale / Discount</h3>
-            <p>Bold pricing, promo vibe, strong CTA.</p>
+            <h3>Fast Creation</h3>
+            <p>Generate clean ad layouts in seconds.</p>
           </div>
           <div class="info-card">
-            <h3>Event / Flyer</h3>
-            <p>Date/time/location friendly layout.</p>
+            <h3>Mobile Sharing</h3>
+            <p>Download or share from your phone (AirDrop supported via share sheet).</p>
           </div>
           <div class="info-card">
-            <h3>Hiring / Jobs</h3>
-            <p>Position + pay + how to apply.</p>
+            <h3>Safe Reaction Mode</h3>
+            <p>Adjusts design emphasis based on attention — not pricing or biometrics.</p>
           </div>
         </div>
-
-        <p class="muted">
-          Next step (optional): connect an AI API so your “prompt styles” become truly unlimited and smarter.
-        </p>
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
       <div class="container footer-grid">
         <div>
@@ -257,7 +268,7 @@
 
         <div class="footer-links">
           <a href="#builder">Builder</a>
-          <a href="#templates">Templates</a>
+          <a href="#features">Features</a>
           <a href="#" id="backToTop">Back to top</a>
         </div>
       </div>
